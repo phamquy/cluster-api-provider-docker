@@ -28,18 +28,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	infrav1 "github.com/capi-samples/cluster-api-provider-docker/api/v1alpha1"
-	"github.com/capi-samples/cluster-api-provider-docker/pkg/container"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	klog "k8s.io/klog/v2"
 
 	"github.com/capi-samples/cluster-api-provider-docker/pkg/docker"
-	"sigs.k8s.io/cluster-api/util"
 
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"github.com/capi-samples/cluster-api-provider-docker/pkg/container"
+	"github.com/pkg/errors"
 	"sigs.k8s.io/cluster-api/util/predicates"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
@@ -101,7 +100,7 @@ func (r *DockerClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	// Create a helper for managing a docker container hosting the loadbalancer.
 	externalLoadBalancer, err := docker.NewLoadBalancer(ctx, cluster, dockerCluster)
 	if err != nil {
-		return ctrl.Result{}, apierrors.Wrapf(err, "failed to create helper for managing the externalLoadBalancer")
+		return ctrl.Result{}, errors.Wrapf(err, "failed to create helper for managing the externalLoadBalancer")
 	}
 
 	// Initialize the patch helper
@@ -138,13 +137,13 @@ func (r *DockerClusterReconciler) reconcileNormal(ctx context.Context, dockerClu
 
 	// Create the docker container hosting the load balancer if it does not exist.
 	if err := externalLoadBalancer.Create(ctx); err != nil {
-		return ctrl.Result{}, apierrors.Wrap(err, "failed to create load balancer")
+		return ctrl.Result{}, errors.Wrap(err, "failed to create load balancer")
 	}
 
 	// Get the load balancer IP so we can use it for the enpoint address
 	lbIP, err := externalLoadBalancer.IP(ctx)
 	if err != nil {
-		return ctrl.Result{}, apierrors.Wrap(err, "failed to get IP for the load balancer")
+		return ctrl.Result{}, errors.Wrap(err, "failed to get IP for the load balancer")
 	}
 
 	dockerCluster.Spec.ControlPlaneEndpoint = clusterv1.APIEndpoint{
@@ -161,7 +160,7 @@ func (r *DockerClusterReconciler) reconcileDelete(ctx context.Context, dockerClu
 
 	// Delete the docker container hosting the load balancer
 	if err := externalLoadBalancer.Delete(ctx); err != nil {
-		return ctrl.Result{}, apierrors.Wrap(err, "failed to delete load balancer")
+		return ctrl.Result{}, errors.Wrap(err, "failed to delete load balancer")
 	}
 	// Cluster is deleted so remove the finalizer.
 	controllerutil.RemoveFinalizer(dockerCluster, infrav1.ClusterFinalizer)

@@ -24,7 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	infrastructurev1alpha1 "github.com/myname/cluster-api-provider-docker/api/v1alpha1"
+	infrastructurev1alpha1 "github.com/phamquy/cluster-api-provider-docker/api/v1alpha1"
 )
 
 // DockerMachineReconciler reconciles a DockerMachine object

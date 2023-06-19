@@ -1,10 +1,12 @@
 [
     {
       "name": "docker-kubecon",
+      
       "config": {
         "image": "ghcr.io/capi-samples/cluster-api-provider-docker:dev",
+        "go_main" : "cmd/main.go",
         "live_reload_deps": [
-          "main.go",
+          "cmd/main.go",
           "go.mod",
           "go.sum",
           "api",

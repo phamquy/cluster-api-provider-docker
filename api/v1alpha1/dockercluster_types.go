@@ -46,7 +46,7 @@ type DockerClusterStatus struct {
 
 	// Ready indicates that the cluster is ready.
 	// +optional
-	// +kubebuilder:default=falctrl.SetupSignalHandler()se
+	// +kubebuilder:default=false
 	Ready bool `json:"ready"`
 }
 
