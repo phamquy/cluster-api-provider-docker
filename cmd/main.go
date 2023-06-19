@@ -27,13 +27,15 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"sigs.k8s.io/cluster-api/controllers/remote"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/capi-samples/cluster-api-provider-docker/pkg/container"
 	infrastructurev1alpha1 "github.com/phamquy/cluster-api-provider-docker/api/v1alpha1"
 	"github.com/phamquy/cluster-api-provider-docker/internal/controller"
+	"github.com/phamquy/cluster-api-provider-docker/pkg/container"
+	rcontroller "sigs.k8s.io/controller-runtime/pkg/controller"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -98,6 +100,29 @@ func main() {
 		os.Exit(1)
 	}
 
+	log := ctrl.Log.WithName("remote").WithName("ClusterCacheTracker")
+	tracker, err := remote.NewClusterCacheTracker(
+		mgr,
+		remote.ClusterCacheTrackerOptions{
+			Log:     &log,
+			Indexes: remote.DefaultIndexes,
+		},
+	)
+	if err != nil {
+		setupLog.Error(err, "unable to create cluster cache tracker")
+		os.Exit(1)
+	}
+
+	if err := (&remote.ClusterCacheReconciler{
+		Client:  mgr.GetClient(),
+		Tracker: tracker,
+	}).SetupWithManager(ctx, mgr, rcontroller.Options{
+		MaxConcurrentReconciles: 10,
+	}); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "ClusterCacheReconciler")
+		os.Exit(1)
+	}
+
 	if err = (&controller.DockerClusterReconciler{
 		Client:           mgr.GetClient(),
 		Scheme:           mgr.GetScheme(),
@@ -108,8 +133,9 @@ func main() {
 	}
 
 	if err = (&controller.DockerMachineReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:           mgr.GetClient(),
+		ContainerRuntime: runtimeClient,
+		Tracker:          tracker,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "DockerMachine")
 		os.Exit(1)

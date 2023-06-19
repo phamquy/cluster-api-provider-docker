@@ -27,17 +27,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	infrav1 "github.com/capi-samples/cluster-api-provider-docker/api/v1alpha1"
+	infrav1 "github.com/phamquy/cluster-api-provider-docker/api/v1alpha1"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	klog "k8s.io/klog/v2"
 
-	"github.com/capi-samples/cluster-api-provider-docker/pkg/docker"
+	"github.com/phamquy/cluster-api-provider-docker/pkg/docker"
 
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	"github.com/capi-samples/cluster-api-provider-docker/pkg/container"
+	"github.com/phamquy/cluster-api-provider-docker/pkg/container"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/cluster-api/util/predicates"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
